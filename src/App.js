@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 
 export default class App extends Component {
   constructor(props) {
@@ -18,17 +19,29 @@ export default class App extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleInput = this.handleInput.bind(this);
   }
+  handleClear = () => {
+    let newdataPost = { ...this.state.dataPost };
+    newdataPost["nama_karyawan"] = "";
+    newdataPost["jabatan"] = "";
+    newdataPost["jenis_kelamin"] = "";
+    newdataPost["tanggal_lahir"] = "";
+    this.setState({ dataPost: newdataPost });
+  };
 
   handleInput(e) {
     let newdataPost = { ...this.state.dataPost };
     newdataPost["id"] = new Date().getTime();
-    newdataPost[e.target.name] = newdataPost[e.target.value];
+    newdataPost[e.target.name] = e.target.value;
+    this.setState({ dataPost: newdataPost });
   }
 
   handleSubmit() {
-    fetch("http://localhost:3004/data-karyawan", this.state.dataPost)
-      .then((response) => response.json())
-      .then(() => this.handleReload());
+    axios
+      .post("http://localhost:3004/data-karyawan", this.state.dataPost)
+      .then(() => {
+        this.handleReload();
+        this.handleClear();
+      });
   }
 
   handleRemove(e) {
