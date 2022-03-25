@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import axios from "axios";
+import "./style/style.css";
+import { Form, Card, Button } from "react-bootstrap";
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       dataApi: [],
+      edit: false,
       dataPost: {
         id: 1557298991816,
         nama_karyawan: "",
@@ -19,6 +22,16 @@ export default class App extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleInput = this.handleInput.bind(this);
   }
+
+  getDataId = (e) => {
+    axios
+      .get(`http://localhost:3004/data-karyawan/${e.target.value}`)
+      .then((res) => {
+        console.log(res);
+        this.setState({ dataPost: res.data, edit: true });
+      });
+  };
+
   handleClear = () => {
     let newdataPost = { ...this.state.dataPost };
     newdataPost["nama_karyawan"] = "";
@@ -30,18 +43,32 @@ export default class App extends Component {
 
   handleInput(e) {
     let newdataPost = { ...this.state.dataPost };
-    newdataPost["id"] = new Date().getTime();
+    if (this.state.edit === false) {
+      newdataPost["id"] = new Date().getTime();
+    }
     newdataPost[e.target.name] = e.target.value;
     this.setState({ dataPost: newdataPost });
   }
 
   handleSubmit() {
-    axios
-      .post("http://localhost:3004/data-karyawan", this.state.dataPost)
-      .then(() => {
-        this.handleReload();
-        this.handleClear();
-      });
+    if (this.state.edit === false) {
+      axios
+        .post("http://localhost:3004/data-karyawan", this.state.dataPost)
+        .then(() => {
+          this.handleReload();
+          this.handleClear();
+        });
+    } else {
+      axios
+        .put(
+          `http://localhost:3004/data-karyawan/${this.state.dataPost.id}`,
+          this.state.dataPost
+        )
+        .then(() => {
+          this.handleReload();
+          this.handleClear();
+        });
+    }
   }
 
   handleRemove(e) {
@@ -63,89 +90,79 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <nav
-          style={{
-            height: "30px",
-            backgroundColor: "#3C4CAD",
-            fontSize: "25px",
-            textAlign: "center",
-            fontWeight: "bold",
-            color: "white",
-            marginBottom: "1.5em",
-          }}
-        >
-          Data Karyawan
-        </nav>
+        <nav>Data Karyawan</nav>
         <center>
           <>
             <span>
-              <input
-                name="nama_karyawan"
-                onChange={this.handleInput}
-                value={this.state.dataPost.nama_karyawan}
-                type="text"
-                placeholder="Masukkan Nama Karyawan"
-                style={{
-                  padding: "10px",
-                  margin: "10px",
-                }}
-              ></input>
-              <input
-                name="jenis_kelamin"
-                onChange={this.handleInput}
-                value={this.state.dataPost.jenis_kelamin}
-                style={{ padding: "10px", margin: "10px" }}
-                type="text"
-                placeholder="Masukkan Jenis Kelamin"
-              ></input>
-              <input
-                name="jabatan"
-                onChange={this.handleInput}
-                value={this.state.dataPost.jabatan}
-                style={{ padding: "10px", margin: "10px" }}
-                type="text"
-                placeholder="Masukkan Jabatan"
-              ></input>
-              <input
-                name="tanggal_lahir"
-                onChange={this.handleInput}
-                type="date"
-                value={this.state.dataPost.tanggal_lahir}
-              ></input>
-              <button
-                style={{
-                  padding: "5px",
-                  margin: "10px",
-                  backgroundColor: "yellow",
-                }}
+              <Form className="w-75 d-flex">
+                <Form.Control
+                  name="nama_karyawan"
+                  onChange={this.handleInput}
+                  value={this.state.dataPost.nama_karyawan}
+                  type="text"
+                  placeholder="Masukkan Nama Karyawan"
+                  className="col-input"
+                />
+                <Form.Control
+                  name="jenis_kelamin"
+                  onChange={this.handleInput}
+                  value={this.state.dataPost.jenis_kelamin}
+                  className="col-input"
+                  type="text"
+                  placeholder="Masukkan Jenis Kelamin"
+                />
+                <Form.Control
+                  name="jabatan"
+                  onChange={this.handleInput}
+                  value={this.state.dataPost.jabatan}
+                  className="col-input"
+                  type="text"
+                  placeholder="Masukkan Jabatan"
+                />
+                <Form.Control
+                  name="tanggal_lahir"
+                  onChange={this.handleInput}
+                  type="date"
+                  value={this.state.dataPost.tanggal_lahir}
+                />
+              </Form>
+              <Button
                 type="submit"
                 onClick={this.handleSubmit}
+                className="ms-2 mt-3"
               >
                 Save Data
-              </button>
+              </Button>
             </span>
           </>
-          <div style={{ marginTop: "50px" }}>
-            {this.state.dataApi.map((data, index) => {
-              let nama = <strong>{data.nama_karyawan}</strong>;
-              let jeniskelamin = <u>{data.jenis_kelamin}</u>;
-              let jabatan = <mark>{data.jabatan}</mark>;
-              let tanggalLahir = <em>{data.tanggal_lahir}</em>;
+          <div className="body">
+            {this.state.dataApi.map((dat, index) => {
+              let nama = <strong>{dat.nama_karyawan}</strong>;
+              let jeniskelamin = <u>{dat.jenis_kelamin}</u>;
+              let jabatan = <mark>{dat.jabatan}</mark>;
+              let tanggalLahir = <em>{dat.tanggal_lahir}</em>;
               return (
-                <span key={index}>
-                  <p>Id : {data.id}</p>
-                  <p>Nama : {nama}</p>
-                  <p>Jenis Kelamin : {jeniskelamin}</p>
-                  <p>Jabatan : {jabatan}</p>
-                  <p>Tanggal Lahir : {tanggalLahir}</p>
-                  <p>
-                    <button value={data.id} onClick={this.handleRemove}>
-                      Delete
-                    </button>
-                  </p>
-                  <br />
-                  <hr />
-                </span>
+                <div key={index} className="isi">
+                  <Card border="primary" className="card">
+                    <p>Id : {dat.id}</p>
+                    <p>Nama : {nama}</p>
+                    <p>Jenis Kelamin : {jeniskelamin}</p>
+                    <p>Jabatan : {jabatan}</p>
+                    <p>Tanggal Lahir : {tanggalLahir}</p>
+                    <p>
+                      <Button
+                        value={dat.id}
+                        onClick={this.handleRemove}
+                        style={{ marginRight: "0.8rem" }}
+                      >
+                        Delete
+                      </Button>
+                      <Button value={dat.id} onClick={this.getDataId}>
+                        Edit Data
+                      </Button>
+                    </p>
+                  </Card>
+                </div>
               );
             })}
           </div>
